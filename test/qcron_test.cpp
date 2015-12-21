@@ -8,7 +8,12 @@ void
 QCronTest::
 basics()
 {
-    QFAIL("Nothing here.");
+    QDateTime now = QDateTime::currentDateTime();
+    QCron c("* * * * * *");
+    c.setBeginning(now);
+    QDateTime next = c.next();
+    qDebug() << next;
+    QFAIL("Nope!");
 }
 
 /******************************************************************************/
