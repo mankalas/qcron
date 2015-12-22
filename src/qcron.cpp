@@ -3,6 +3,7 @@
 #include <cmath>
 
 #include <QDebug>
+#include <QTime>
 
 /******************************************************************************/
 
@@ -47,23 +48,42 @@ _init()
 
 void
 QCron::
+_setError(const QString & error)
+{
+    _is_valid = false;
+    _error = error;
+}
+
+/******************************************************************************/
+
+void
+QCron::
 _parsePattern(QString & pattern)
 {
     if (pattern.contains("\n"))
     {
-        _is_valid = false;
+        _setError("'\n' is an invalid field separator.");
         return;
     }
     QStringList fields = pattern.simplified().split(" ", QString::SkipEmptyParts);
-    if (fields.size() != 6)
+    int nb_fields = fields.size();
+    if (nb_fields != 6)
     {
-        _is_valid = false;
+        _setError(QString("Wrong number of fields: expected 6, got %1")
+                  .arg(nb_fields));
         return;
     }
+    try
+    {
     for (int i = 0; i < 6; ++i)
     {
         _fields[i].parse(fields[i]);
         _is_valid &= _fields[i].isValid();
+    }
+    }
+    catch (QCronFieldException & e)
+    {
+        _setError(e.msg());
     }
 }
 
@@ -71,9 +91,23 @@ _parsePattern(QString & pattern)
 
 QDateTime
 QCron::
-next(int n) const
+next(QDateTime dt)
+{
+    for (int i = 0; i < 6; ++i)
+    {
+        _fields[i].next(dt);
+    }
+    return dt;
+}
+
+/******************************************************************************/
+
+QDateTime
+QCron::
+next(int n)
 {
     Q_UNUSED(n);
-    //QCronField seconds = _fields[0];
-    return QDateTime::currentDateTime();
+    return next(_beginning);
 }
+
+/******************************************************************************/

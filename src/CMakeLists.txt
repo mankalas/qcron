@@ -1,6 +1,7 @@
 set(${PROJECT}_SRC_FILES
   qcron.cpp
   qcronfield.cpp
+  qcronnode.cpp
   )
 
 set(${PROJECT}_HEADERS

@@ -21,9 +21,13 @@ public:
     bool isValid() const
         { return _is_valid; }
 
+    const QString & error() const
+        { return _error; }
+
     // Features.
 
-    QDateTime next(int n = 1) const;
+    QDateTime next(int n = 1);
+    QDateTime next(QDateTime dt);
 
 signals:
     void activated();
@@ -31,10 +35,12 @@ signals:
 
 private:
     bool _is_valid;
+    QString _error;
     QCronField _fields[6];
     QDateTime _beginning;
 
     void _init();
+    void _setError(const QString & error);
     void _parsePattern(QString & pattern);
     void _parseField(QString & field_str,
                      EField field);

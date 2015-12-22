@@ -1,5 +1,7 @@
 #include "qcronfield.hpp"
 
+#include <QDebug>
+
 /******************************************************************************/
 
 QCronField::
@@ -9,11 +11,10 @@ QCronField()
 
 /******************************************************************************/
 
-IntNode *
+QCronIntNode *
 QCronField::
 _parseInt(QString & str)
 {
-    IntNode * node = new IntNode();
     int value = 0;
     int char_idx = 0;
     QChar c = str[char_idx];
@@ -24,85 +25,78 @@ _parseInt(QString & str)
     }
     if (char_idx == 0)
     {
-        throw 42;
+        throw QCronFieldException(QString("%1 contains an invalid integer")
+                                  .arg(str));
     }
     str.remove(0, char_idx);
-    node->value = value;
-    //qDebug() << "Parsing an Int :" << value;
-    switch (_field)
+    //qDebug() << "Parsing int" << value;
+    if (value < _min || _max < value)
     {
-    case MINUTE: if (value < 0 || 59 < value) throw 42; break;
-    case HOUR:   if (value < 0 || 23 < value) throw 42; break;
-    case DOM:    if (value < 1 || 31 < value) throw 42; break;
-    case MONTH:  if (value < 1 || 12 < value) throw 42; break;
-    case DOW:    if (value < 1 || 7  < value) throw 42; break;
-    case YEAR:   if (value < 2016 || 2099 < value) throw 42; break;
-    default:                                  throw 42; break;
+        throw QCronFieldException(QString("Value %1 out of range [%2;%3]")
+                                  .arg(value).arg(_min).arg(_max));
     }
-    return node;
+    return new QCronIntNode(value);
 }
 
 /******************************************************************************/
 
-RangeNode*
+QCronRangeNode*
 QCronField::
 _parseRange(QString & str)
 {
     //   qDebug() << "Parsing a Range";
     if (_last_node == NULL)
     {
-        throw 42;
+        throw QCronFieldException(QString("Syntax error at %1: range has no beginning")
+                                  .arg(str));
     }
-    RangeNode * range = new RangeNode();
-    IntNode * begin = dynamic_cast<IntNode *>(_last_node);
+    QCronIntNode * begin = dynamic_cast<QCronIntNode *>(_last_node);
     if (begin == NULL)
     {
-        throw 42;
+        throw QCronFieldException(QString("Syntax error: expected an interger at %1")
+                                  .arg(str));
     }
-    range->begin = begin;
     str.remove(0, 1);
-    IntNode * end = dynamic_cast<IntNode *>(_parseInt(str));
+    QCronIntNode * end = dynamic_cast<QCronIntNode *>(_parseInt(str));
     if (end == NULL)
     {
-        throw 42;
+        throw QCronFieldException(QString("Syntax error: expected an interger at %1")
+                                  .arg(str));
     }
-    range->end = end;
-    if (range->begin->value > range->end->value)
+    if (begin->value() > end->value())
     {
-        throw 42;
+        throw QCronFieldException(QString("Invalid range: end is before start at %1")
+                                  .arg(str));
     }
-    return range;
+    return new QCronRangeNode(begin, end);
 }
 
 /******************************************************************************/
 
-EveryNode*
+QCronEveryNode*
 QCronField::
 _parseEvery(QString & str)
 {
 //    qDebug() << "Parsing an Every";
-    EveryNode * every = new EveryNode();
-    every->what = _last_node;
     str.remove(0, 1);
-    every->freq = _parseInt(str);
-    return every;
+    return new QCronEveryNode(_last_node, _parseInt(str));
 }
 
 /******************************************************************************/
 
-ListNode*
+QCronListNode*
 QCronField::
 _parseList(QString & str)
 {
 //    qDebug() << "Parsing a List";
-    ListNode * list = new ListNode();
-    list->nodes << _last_node;
+    QCronListNode * list = new QCronListNode();
+    list->nodes() << _last_node;
     _last_node = list;
     while (str[0] == ',')
     {
         str.remove(0, 1);
-        Node * node = _parseNode(str);
-        list->nodes << node;
+        QCronNode * node = _parseNode(str);
+        list->nodes() << node;
         _last_node = node;
     }
     return list;
@@ -110,7 +104,7 @@ _parseList(QString & str)
 
 /******************************************************************************/
 
-Node *
+QCronNode *
 QCronField::
 _parseNode(QString & str)
 {
@@ -130,13 +124,13 @@ _parseNode(QString & str)
     }
     else if ("*" == c)
     {
-        return new AllNode;
+        return new QCronAllNode;
     }
     else if ("," == c)
     {
         return _parseList(str);
     }
-    throw 42;
+    throw QCronFieldException(QString("Unexpected character %1").arg(c));
 }
 
 /******************************************************************************/
@@ -148,7 +142,7 @@ parse(QString & str)
     try
     {
         _last_node = NULL;
-        Node * _root = _parseNode(str);
+        _root = _parseNode(str);
         if (!str.isEmpty())
         {
             _last_node = _root;
@@ -163,3 +157,77 @@ parse(QString & str)
 }
 
 /******************************************************************************/
+
+int
+QCronField::
+getDateTimeSection(QDateTime & dt) const
+{
+    switch (_field)
+    {
+    case MINUTE: return dt.time().minute();
+    case HOUR:   return dt.time().hour();
+    case DOM:    return dt.date().day();
+    case MONTH:  return dt.date().month();
+    case DOW:    return dt.date().dayOfWeek();
+    case YEAR:   return dt.date().year();
+    default:     qFatal("Shouldn't be here");
+    }
+}
+
+/******************************************************************************/
+
+void
+QCronField::
+applyOffset(QDateTime & dt, int offset) const
+{
+    bool overflow = offset < 0 || (offset == 0 && _field == MINUTE);
+
+    offset += overflow ? 1 : 0;
+
+    switch (_field)
+    {
+    case MINUTE:
+    {
+        offset -= overflow ? 1 : 0;
+        offset += offset <= 0 ? 60 : 0;
+        dt = dt.addSecs(60 * offset);
+        break;
+    }
+    case HOUR:
+        {
+            dt.addSecs(3600 * offset);
+            break;
+        }
+    case DOM:
+    case DOW:
+        {
+            dt.addDays(offset);
+            break;
+        }
+    case MONTH:
+        {
+            dt.addMonths(offset);
+            break;
+        }
+    case YEAR:
+        {
+            dt.addYears(offset);
+            break;
+        }
+    default:
+        {
+            qFatal("Shouldn't be here");
+        }
+    }
+}
+
+/******************************************************************************/
+
+void
+QCronField::
+next(QDateTime & dt)
+{
+    int time_section = getDateTimeSection(dt);
+    int offset = _root->next(time_section);
+    applyOffset(dt, offset);
+}

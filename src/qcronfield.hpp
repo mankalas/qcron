@@ -1,8 +1,10 @@
 #ifndef _QCRONFIELD_HPP
 #define _QCRONFIELD_HPP
 
+#include <QDateTime>
 #include <QList>
 #include <QString>
+#include "qcronnode.hpp"
 
 enum EField
 {
@@ -14,43 +16,19 @@ enum EField
     YEAR
 };
 
-struct Node
+class QCronFieldException
 {
-    virtual ~Node() {}
-};
+public:
+    QCronFieldException(const QString & msg)
+        : _msg(msg)
+        {
+        }
 
-struct ValueNode : public Node
-{
-};
+    const QString & msg() const
+        { return _msg; }
 
-struct IntNode : public ValueNode
-{
-    int value;
-};
-
-struct StrNode : public ValueNode
-{
-};
-
-struct AllNode : public ValueNode
-{
-};
-
-struct RangeNode : public Node
-{
-    IntNode * begin;
-    IntNode * end;
-};
-
-struct EveryNode : public Node
-{
-    Node * what;
-    IntNode * freq;
-};
-
-struct ListNode : public Node
-{
-    QList<Node*> nodes;
+private:
+    QString _msg;
 };
 
 class QCronField
@@ -60,7 +38,19 @@ public:
 
     // Accessors.
     void setField(EField field)
-        { _field = field; }
+        {
+            _field = field;
+            switch (_field)
+            {
+            case MINUTE: _min = 0; _max = 59;      break;
+            case HOUR:   _min = 0; _max = 23;      break;
+            case DOM:    _min = 1; _max = 31;      break;
+            case MONTH:  _min = 1; _max = 12;      break;
+            case DOW:    _min = 1; _max = 7 ;      break;
+            case YEAR:   _min = 2016; _max = 2099; break;
+            default:     throw 42;
+            }
+        }
 
     // Features.
     void parse(QString & str);
@@ -68,17 +58,25 @@ public:
     bool isValid() const
         { return _is_valid; }
 
+    void next(QDateTime & dt);
+
+    int getDateTimeSection(QDateTime & dt) const;
+    void applyOffset(QDateTime & dt, int offset) const;
+
 private:
+    int _min;
+    int _max;
     EField _field;
     bool _is_valid;
-    Node * _last_node;
-    Node * _root;
+    QCronNode * _last_node;
+    QCronNode * _root;
 
-    IntNode * _parseInt(QString & str);
-    RangeNode* _parseRange(QString & str);
-    EveryNode* _parseEvery(QString & str);
-    ListNode * _parseList(QString & str);
-    Node * _parseNode(QString & str);
+    QCronIntNode * _parseInt(QString & str);
+    QCronRangeNode* _parseRange(QString & str);
+    QCronEveryNode* _parseEvery(QString & str);
+    QCronListNode * _parseList(QString & str);
+    QCronNode * _parseNode(QString & str);
+    int getTimeSection(QDateTime & dt) const;
 };
 
 #endif
