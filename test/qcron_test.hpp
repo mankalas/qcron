@@ -10,14 +10,18 @@ class QCronTest : public QObject
 
 private slots:
     void init();
+    void years();
+    void dow();
+    void hours();
     void minutes();
+    void realLife();
 
 private:
     QDate _dnow;
     QTime _tnow;
 
     QDateTime actual(QString & pattern);
-    QDateTime expected(int offset);
+    QDateTime now();
 
 };
 

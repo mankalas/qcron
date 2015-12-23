@@ -4,12 +4,27 @@
 #include <QList>
 #include <QtGlobal>
 
+#include "qcronfield.hpp"
+
+class QCron;
+class QCronField;
+
 class QCronNode
 {
 public:
     virtual ~QCronNode();
 
+    void setField(QCronField * field);
+
     virtual int next(int t) const = 0;
+
+    virtual bool match(int tu) const = 0;
+    virtual void process(QCron * cron,
+                         QDateTime & dt,
+                         EField field) = 0;
+
+protected:
+    QCronField * _field;
 };
 
 class QCronValueNode : public QCronNode
@@ -24,6 +39,11 @@ public:
     int value() const;
 
     virtual int next(int t) const Q_DECL_OVERRIDE;
+    virtual bool match(int tu) const Q_DECL_OVERRIDE;
+
+    virtual void process(QCron * cron,
+                         QDateTime & dt,
+                         EField field) Q_DECL_OVERRIDE;
 
 private:
     int _value;
@@ -33,12 +53,20 @@ class QCronStrNode : public QCronValueNode
 {
 public:
     virtual int next(int t) const Q_DECL_OVERRIDE;
+    virtual bool match(int tu) const Q_DECL_OVERRIDE;
+    virtual void process(QCron * cron,
+                         QDateTime & dt,
+                         EField field) Q_DECL_OVERRIDE;
 };
 
 class QCronAllNode : public QCronValueNode
 {
 public:
     virtual int next(int t) const Q_DECL_OVERRIDE;
+    virtual bool match(int tu) const Q_DECL_OVERRIDE;
+    virtual void process(QCron * cron,
+                         QDateTime & dt,
+                         EField field) Q_DECL_OVERRIDE;
 };
 
 class QCronRangeNode : public QCronNode
@@ -47,7 +75,15 @@ public:
     QCronRangeNode(const QCronIntNode * begin,
                    const QCronIntNode * end);
 
+    int beginValue() const;
+    int endValue() const;
+
     virtual int next(int t) const Q_DECL_OVERRIDE;
+    virtual bool match(int tu) const Q_DECL_OVERRIDE;
+
+    virtual void process(QCron * cron,
+                         QDateTime & dt,
+                         EField field) Q_DECL_OVERRIDE;
 
 private:
     const QCronIntNode * _begin;
@@ -60,6 +96,11 @@ public:
     QCronEveryNode(QCronNode *, QCronIntNode *);
 
     virtual int next(int t) const Q_DECL_OVERRIDE;
+    virtual bool match(int tu) const Q_DECL_OVERRIDE;
+
+    virtual void process(QCron * cron,
+                         QDateTime & dt,
+                         EField field) Q_DECL_OVERRIDE;
 
 private:
     QCronNode * _what;
@@ -69,9 +110,13 @@ private:
 class QCronListNode : public QCronNode
 {
 public:
-    QList<QCronNode *> nodes() const;
+    QList<QCronNode *> & nodes();
 
     virtual int next(int t) const Q_DECL_OVERRIDE;
+    virtual bool match(int tu) const Q_DECL_OVERRIDE;
+    virtual void process(QCron * cron,
+                         QDateTime & dt,
+                         EField field) Q_DECL_OVERRIDE;
 
 private:
     QList<QCronNode*> _nodes;

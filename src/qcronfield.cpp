@@ -1,4 +1,5 @@
 #include "qcronfield.hpp"
+#include "qcronnode.hpp"
 
 #include <QDebug>
 
@@ -29,7 +30,6 @@ _parseInt(QString & str)
                                   .arg(str));
     }
     str.remove(0, char_idx);
-    //qDebug() << "Parsing int" << value;
     if (value < _min || _max < value)
     {
         throw QCronFieldException(QString("Value %1 out of range [%2;%3]")
@@ -40,11 +40,10 @@ _parseInt(QString & str)
 
 /******************************************************************************/
 
-QCronRangeNode*
+QCronRangeNode *
 QCronField::
 _parseRange(QString & str)
 {
-    //   qDebug() << "Parsing a Range";
     if (_last_node == NULL)
     {
         throw QCronFieldException(QString("Syntax error at %1: range has no beginning")
@@ -73,28 +72,29 @@ _parseRange(QString & str)
 
 /******************************************************************************/
 
-QCronEveryNode*
+QCronEveryNode *
 QCronField::
 _parseEvery(QString & str)
 {
-//    qDebug() << "Parsing an Every";
     str.remove(0, 1);
     return new QCronEveryNode(_last_node, _parseInt(str));
 }
 
 /******************************************************************************/
 
-QCronListNode*
+QCronListNode *
 QCronField::
 _parseList(QString & str)
 {
-//    qDebug() << "Parsing a List";
     QCronListNode * list = new QCronListNode();
     list->nodes() << _last_node;
     _last_node = list;
-    while (str[0] == ',')
+    while (!str.isEmpty())
     {
-        str.remove(0, 1);
+        if (str[0] == ',')
+        {
+            str.remove(0, 1);
+        }
         QCronNode * node = _parseNode(str);
         list->nodes() << node;
         _last_node = node;
@@ -108,29 +108,35 @@ QCronNode *
 QCronField::
 _parseNode(QString & str)
 {
-    //qDebug() << "Parsing a node";
+    QCronNode * node = NULL;
     QChar c = str[0];
     if (c.isDigit())
     {
-        return _parseInt(str);
+        node = _parseInt(str);
     }
     else if ("-" == c)
     {
-        return _parseRange(str);
+        node = _parseRange(str);
     }
     else if ("/" == c)
     {
-        return _parseEvery(str);
+        node = _parseEvery(str);
     }
     else if ("*" == c)
     {
-        return new QCronAllNode;
+        str.remove(0, 1);
+        node = new QCronAllNode;
     }
     else if ("," == c)
     {
-        return _parseList(str);
+        node = _parseList(str);
     }
-    throw QCronFieldException(QString("Unexpected character %1").arg(c));
+    if (NULL == node)
+    {
+        throw QCronFieldException(QString("Unexpected character %1").arg(c));
+    }
+    node->setField(this);
+    return node;
 }
 
 /******************************************************************************/
@@ -139,38 +145,38 @@ void
 QCronField::
 parse(QString & str)
 {
-    try
+    _last_node = NULL;
+    _root = _parseNode(str);
+    while (!str.isEmpty())
     {
-        _last_node = NULL;
+        _last_node = _root;
         _root = _parseNode(str);
-        if (!str.isEmpty())
-        {
-            _last_node = _root;
-            _root = _parseNode(str);
-        }
-        _is_valid = true;
     }
-    catch (int)
-    {
-        _is_valid = false;
-    }
+    _is_valid = true;
 }
 
 /******************************************************************************/
 
 int
 QCronField::
-getDateTimeSection(QDateTime & dt) const
+getDateTimeSection(const QDateTime & dt) const
 {
     switch (_field)
     {
-    case MINUTE: return dt.time().minute();
-    case HOUR:   return dt.time().hour();
-    case DOM:    return dt.date().day();
-    case MONTH:  return dt.date().month();
-    case DOW:    return dt.date().dayOfWeek();
-    case YEAR:   return dt.date().year();
-    default:     qFatal("Shouldn't be here");
+        case MINUTE:
+            return dt.time().minute();
+        case HOUR:
+            return dt.time().hour();
+        case DOM:
+            return dt.date().day();
+        case MONTH:
+            return dt.date().month();
+        case DOW:
+            return dt.date().dayOfWeek();
+        case YEAR:
+            return dt.date().year();
+        default:
+            qFatal("Shouldn't be here");
     }
 }
 
@@ -178,43 +184,37 @@ getDateTimeSection(QDateTime & dt) const
 
 void
 QCronField::
-applyOffset(QDateTime & dt, int offset) const
+applyOffset(QDateTime & dt, int & offset) const
 {
-    bool overflow = offset < 0 || (offset == 0 && _field == MINUTE);
-
-    offset += overflow ? 1 : 0;
-
     switch (_field)
     {
-    case MINUTE:
-    {
-        offset -= overflow ? 1 : 0;
-        offset += offset <= 0 ? 60 : 0;
-        dt = dt.addSecs(60 * offset);
-        break;
-    }
-    case HOUR:
+        case MINUTE:
         {
-            dt.addSecs(3600 * offset);
+            dt = dt.addSecs(60 * offset);
             break;
         }
-    case DOM:
-    case DOW:
+        case HOUR:
         {
-            dt.addDays(offset);
+            dt = dt.addSecs(3600 * offset);
             break;
         }
-    case MONTH:
+        case DOM:
+        case DOW:
         {
-            dt.addMonths(offset);
+            dt = dt.addDays(offset);
             break;
         }
-    case YEAR:
+        case MONTH:
         {
-            dt.addYears(offset);
+            dt = dt.addMonths(offset);
             break;
         }
-    default:
+        case YEAR:
+        {
+            dt = dt.addYears(offset);
+            break;
+        }
+        default:
         {
             qFatal("Shouldn't be here");
         }
@@ -223,11 +223,54 @@ applyOffset(QDateTime & dt, int offset) const
 
 /******************************************************************************/
 
-void
+int
 QCronField::
 next(QDateTime & dt)
 {
     int time_section = getDateTimeSection(dt);
-    int offset = _root->next(time_section);
-    applyOffset(dt, offset);
+    return _root->next(time_section);
 }
+
+/******************************************************************************/
+
+void
+QCronField::
+reset(QDateTime & dt)
+{
+    int value = _min;
+    QDate date = dt.date();
+    QTime time = dt.time();
+
+    switch (_field)
+    {
+        case YEAR:
+            dt.setDate(QDate(value, date.month(), date.day()));
+            break;
+        case MONTH:
+            dt.setDate(QDate(date.year(), value, date.day()));
+            break;
+        case DOW:
+        case DOM:
+            dt.setDate(QDate(date.year(), date.month(), value));
+            break;
+        case HOUR:
+            dt.setTime(QTime(value, time.minute(), 0));
+            break;
+        case MINUTE:
+            dt.setTime(QTime(time.hour(), value, 0));
+            break;
+        default:
+            qFatal("Unknown value in add");
+    }
+}
+
+/******************************************************************************/
+
+bool
+QCronField::
+match(const QDateTime & dt) const
+{
+    return _root->match(getDateTimeSection(dt));
+}
+
+/******************************************************************************/

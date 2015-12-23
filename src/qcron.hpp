@@ -28,6 +28,10 @@ public:
 
     QDateTime next(int n = 1);
     QDateTime next(QDateTime dt);
+    void catchUp(QDateTime & dt, EField field, int value);
+    bool match(const QDateTime & dt) const;
+    void add(QDateTime & dt, EField field, int value);
+
 
 signals:
     void activated();
@@ -45,7 +49,7 @@ private:
     void _parseField(QString & field_str,
                      EField field);
     QString _validCharacters(EField field);
-
+    void chiche(QDateTime & dt, EField field);
 };
 
 #endif

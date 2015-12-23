@@ -4,7 +4,6 @@
 #include <QDateTime>
 #include <QList>
 #include <QString>
-#include "qcronnode.hpp"
 
 enum EField
 {
@@ -15,6 +14,12 @@ enum EField
     DOW,
     YEAR
 };
+
+class QCronIntNode;
+class QCronRangeNode;
+class QCronNode;
+class QCronEveryNode;
+class QCronListNode;
 
 class QCronFieldException
 {
@@ -47,21 +52,36 @@ public:
             case DOM:    _min = 1; _max = 31;      break;
             case MONTH:  _min = 1; _max = 12;      break;
             case DOW:    _min = 1; _max = 7 ;      break;
-            case YEAR:   _min = 2016; _max = 2099; break;
+            case YEAR:   _min = 1; _max = 2099; break;
             default:     throw 42;
             }
         }
+    EField getField() const
+        { return _field; }
+
+    int getMax() const
+        { return _max; }
+
+    int getMin() const
+        { return _min; }
 
     // Features.
     void parse(QString & str);
 
     bool isValid() const
         { return _is_valid; }
+    bool match(const QDateTime & dt) const;
 
-    void next(QDateTime & dt);
+    QCronNode * getRoot() const
+        { return _root; }
 
-    int getDateTimeSection(QDateTime & dt) const;
-    void applyOffset(QDateTime & dt, int offset) const;
+    int next(QDateTime & dt);
+
+    int getDateTimeSection(const QDateTime & dt) const;
+    void applyOffset(QDateTime & dt, int & offset) const;
+
+    void reset(QDateTime & dt);
+
 
 private:
     int _min;

@@ -44,17 +44,22 @@ buildTests(QStringList & good,
         buildPattern(pattern_idx, "2-a") <<
         buildPattern(pattern_idx, QString("%1-%2").arg(min).arg(max + 1)) <<
         buildPattern(pattern_idx, QString("%1-%2").arg(min - 1).arg(max)) <<
-        buildPattern(pattern_idx, QString("%1,%2,").arg(min).arg(min +1)) <<
+        buildPattern(pattern_idx, QString("%1,%2,").arg(min).arg(min + 1)) <<
         buildPattern(pattern_idx, "1,a") <<
         buildPattern(pattern_idx, QString("%1,%2").arg(min).arg(max + 1)) <<
-        buildPattern(pattern_idx, QString("%1,%2").arg(min).arg(min - 1));
+        buildPattern(pattern_idx, QString("%1,%2").arg(min).arg(min - 1)) <<
+        buildPattern(pattern_idx, "1/2/3 * * * * *") <<
+        buildPattern(pattern_idx, "1-2-3 * * * * *") << // Bad range
+        buildPattern(pattern_idx, "** * * * * *") << // Bad star
+        buildPattern(pattern_idx, "1,,2 * * * * *") // Bad list
+        ;
     good << buildPattern(pattern_idx, QString::number(min)) <<
-        buildPattern(pattern_idx, QString("000000000%1").arg(min)) <<
-        buildPattern(pattern_idx, QString::number(max)) <<
-        buildPattern(pattern_idx, QString("%1-%2").arg(min).arg(max)) <<
-        buildPattern(pattern_idx, QString("%1-%1").arg(min)) <<
-        buildPattern(pattern_idx, QString("%1,%2,%3").arg(min).arg(min + 1).arg(max -1)) <<
-        buildPattern(pattern_idx, QString("%1,%1").arg(min));
+         buildPattern(pattern_idx, QString("000000000%1").arg(min)) <<
+         buildPattern(pattern_idx, QString::number(max)) <<
+         buildPattern(pattern_idx, QString("%1-%2").arg(min).arg(max)) <<
+         buildPattern(pattern_idx, QString("%1-%1").arg(min)) <<
+         buildPattern(pattern_idx, QString("%1,%2,%3").arg(min).arg(min + 1).arg(max - 1)) <<
+         buildPattern(pattern_idx, QString("%1,%1").arg(min));
 }
 
 /******************************************************************************/
@@ -64,13 +69,13 @@ SyntaxTest::
 global()
 {
     QStringList good = QStringList() <<
-        "* * * * * *" <<
-        "*         * * * * *" <<
-        "*\t* *\t\t * * *";
+                       "* * * * * *" <<
+                       "*         * * * * *" <<
+                       "*\t* *\t\t * * *";
     QStringList bad = QStringList() <<
-        "* * * * *" << // Not enough fields
-        "* * * * * * *" << // To many fields
-        "* * *\n* * *"; // Bad separator
+                      "* * * * *" << // Not enough fields
+                      "* * * * * * *" << // To many fields
+                      "* * *\n* * *"; // Bad separator
     doTest(good, bad);
 }
 
@@ -142,7 +147,7 @@ years()
 {
     QStringList good;
     QStringList bad;
-    buildTests(good, bad, 5, 2016, 2099);
+    buildTests(good, bad, 5, 1, 2099);
     doTest(good, bad);
 }
 
@@ -154,13 +159,13 @@ doTest(QStringList good, QStringList bad)
 {
     foreach (QString s, good)
     {
-//        qDebug() << s;
+        //        qDebug() << s;
         QCron cron(s);
         QVERIFY(cron.isValid());
     }
     foreach (QString s, bad)
     {
-//        qDebug() << s;
+                qDebug() << s;
         QCron cron(s);
         QVERIFY(!cron.isValid());
     }
