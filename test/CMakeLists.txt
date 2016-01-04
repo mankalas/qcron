@@ -7,6 +7,7 @@ set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/test)
 set(TESTS
   qcron_test
   syntax_test
+  holiday_test
   )
 
 foreach(test ${TESTS})

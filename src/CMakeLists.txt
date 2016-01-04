@@ -2,6 +2,7 @@ set(${PROJECT}_SRC_FILES
   qcron.cpp
   qcronfield.cpp
   qcronnode.cpp
+  holiday.cpp
   )
 
 set(${PROJECT}_HEADERS
