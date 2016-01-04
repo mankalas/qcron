@@ -8,6 +8,10 @@ class QCronTest : public QObject
 {
     Q_OBJECT
 
+public slots:
+    void cronActivated();
+    void cronDeactivated();
+
 private slots:
     void init();
     void years();
@@ -17,6 +21,7 @@ private slots:
     void realLife();
     void holidays();
     void excludeHolidays();
+    void signalUse();
 
 private:
     QDate _dnow;

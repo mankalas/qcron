@@ -3,8 +3,9 @@
 
 #include <cmath>
 
+#include <QDateTime>
 #include <QDebug>
-#include <QTime>
+#include <QTimer>
 
 /******************************************************************************/
 
@@ -17,10 +18,11 @@ QCron()
 /******************************************************************************/
 
 QCron::
-QCron(QString & pattern)
+QCron(const QString & pattern)
 {
     _init();
     _parsePattern(pattern);
+    _checkState();
 }
 
 /******************************************************************************/
@@ -37,12 +39,41 @@ QCron::
 _init()
 {
     _is_valid = true;
+    _is_active = false;
     _fields[0].setField(MINUTE);
     _fields[1].setField(HOUR);
     _fields[2].setField(DOM);
     _fields[3].setField(MONTH);
     _fields[4].setField(DOW);
     _fields[5].setField(YEAR);
+}
+
+/******************************************************************************/
+
+void
+QCron::
+_checkState()
+{
+    int interval_ms = 0;
+    if (match(QDateTime::currentDateTime()))
+    {
+        emit activated();
+        _is_active = true;
+        interval_ms = 1000 * 60; // one minute
+    }
+    else
+    {
+        if (_is_active)
+        {
+            emit deactivated();
+            _is_active = false;
+        }
+        interval_ms = QDateTime::currentDateTime().secsTo(next()) * 1000;
+    }
+    QTimer::singleShot(interval_ms,
+                       Qt::VeryCoarseTimer,
+                       this,
+                       SLOT(_checkState()));
 }
 
 /******************************************************************************/
@@ -59,7 +90,7 @@ _setError(const QString & error)
 
 void
 QCron::
-_parsePattern(QString & pattern)
+_parsePattern(const QString & pattern)
 {
     if (pattern.contains("\n"))
     {
@@ -213,7 +244,7 @@ catchUp(QDateTime & dt, EField field, int value)
 
 void
 QCron::
-chiche(QDateTime & dt, EField field)
+_process(QDateTime & dt, EField field)
 {
     QCronNode * node = _fields[field].getRoot();
     if (NULL == node)
@@ -223,6 +254,14 @@ chiche(QDateTime & dt, EField field)
     node->process(this, dt, field);
 }
 
+/******************************************************************************/
+
+QDateTime
+QCron::
+next()
+{
+    return next(QDateTime::currentDateTime());
+}
 
 /******************************************************************************/
 
@@ -236,7 +275,7 @@ next(QDateTime dt)
         //qDebug() << dt << "doesn't match";
         for (int i = YEAR; i >= 0; --i)
         {
-            chiche(dt, (EField)i);
+            _process(dt, (EField)i);
             if (!dt.isValid())
             {
                 return dt;
@@ -250,16 +289,6 @@ next(QDateTime dt)
         }
     }
     return dt;
-}
-
-/******************************************************************************/
-
-QDateTime
-QCron::
-next(int n)
-{
-    Q_UNUSED(n);
-    return next(_beginning);
 }
 
 /******************************************************************************/

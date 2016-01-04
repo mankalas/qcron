@@ -22,8 +22,7 @@ QCronTest::
 actual(QString & pattern)
 {
     QCron c(pattern);
-    c.setBeginning(QDateTime(_dnow, _tnow));
-    return c.next();
+    return c.next(QDateTime(_dnow, _tnow));
 }
 
 /******************************************************************************/
@@ -388,6 +387,37 @@ excludeHolidays()
     _dnow.setDate(2016, 12, 24);
     _tnow.setHMS(3, 0, 0);
     QCOMPARE(actual(pattern), QDateTime(QDate(2016, 12, 26), QTime(2, 0, 0)));
+}
+
+/******************************************************************************/
+
+void
+QCronTest::
+signalUse()
+{
+    QCron c("*/2 * * * * *");
+    connect(&c, SIGNAL(activated()),
+            this, SLOT(cronActivated()));
+    connect(&c, SIGNAL(deactivated()),
+            this, SLOT(cronDeactivated()));
+    // Too long to test
+}
+
+/******************************************************************************/
+
+void
+QCronTest::
+cronActivated()
+{
+    qDebug() << "ACTIVATED";
+}
+
+/******************************************************************************/
+
+void QCronTest::
+cronDeactivated()
+{
+    qDebug() << "DEACTIVATED";
 }
 
 /******************************************************************************/
