@@ -335,7 +335,6 @@ QCronHolidayNode::
 next(int t) const
 {
     Q_UNUSED(t)
-    //return Holiday::next(t);
     return -1;
 }
 
@@ -370,6 +369,46 @@ QCronHolidayNode::
 match(const QDateTime & dt) const
 {
     return Holiday::isHoliday(dt.date());
+}
+
+/******************************************************************************/
+/******************************************************************************/
+
+int
+QCronNotHolidayNode::
+next(int t) const
+{
+    Q_UNUSED(t)
+    return -1;
+}
+
+/******************************************************************************/
+
+void
+QCronNotHolidayNode::
+process(QCron * cron,
+        QDateTime & dt,
+        EField field)
+{
+    Q_UNUSED(cron);
+    if (DOM != field)
+    {
+        qFatal("Should not be in a NotHoliday node.");
+    }
+    if (Holiday::isHoliday(dt.date()))
+    {
+        dt = dt.addDays(1);
+        dt.setTime(QTime(0, 0, 0));
+    }
+}
+
+/******************************************************************************/
+
+bool
+QCronNotHolidayNode::
+match(const QDateTime & dt) const
+{
+    return !Holiday::isHoliday(dt.date());
 }
 
 /******************************************************************************/

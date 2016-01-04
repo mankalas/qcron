@@ -151,4 +151,18 @@ public:
 
 /******************************************************************************/
 
+class QCronNotHolidayNode : public QCronNode
+{
+public:
+    virtual int next(int t) const;
+
+    virtual bool match(const QDateTime & dt) const;
+    virtual void process(QCron * cron,
+                         QDateTime & dt,
+                         EField field);
+};
+
+/******************************************************************************/
+
+
 #endif

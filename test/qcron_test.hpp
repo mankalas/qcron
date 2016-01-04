@@ -16,6 +16,7 @@ private slots:
     void minutes();
     void realLife();
     void holidays();
+    void excludeHolidays();
 
 private:
     QDate _dnow;

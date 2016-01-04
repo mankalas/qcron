@@ -140,7 +140,8 @@ _parseNode(QString & str)
         }
         else if ('f' == c)
         {
-
+            str.remove(0, 1);
+            node = new QCronNotHolidayNode();
         }
     }
     if (NULL == node)

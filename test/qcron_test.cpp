@@ -376,8 +376,18 @@ holidays()
     QCOMPARE(actual(pattern), now().addSecs(3600 * 2));
     _tnow.setHMS(23, 59, 59);
     QCOMPARE(actual(pattern), QDateTime(QDate(2017, 1, 1), QTime(2, 0, 0)));
+}
 
+/******************************************************************************/
 
+void
+QCronTest::
+excludeHolidays()
+{
+    QString pattern = "* 2 f * * *";
+    _dnow.setDate(2016, 12, 24);
+    _tnow.setHMS(3, 0, 0);
+    QCOMPARE(actual(pattern), QDateTime(QDate(2016, 12, 26), QTime(2, 0, 0)));
 }
 
 /******************************************************************************/
