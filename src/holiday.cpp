@@ -67,20 +67,16 @@ Holiday::
 next(const QDate & date)
 {
     int year = date.year();
-    QList<QDate> backwardHolidays = yearsHolidays(year);
-    /*for (int i = 0; i < backwardHolidays.size() / 2; ++i)
-    {
-        backwardHolidays.swap(i, backwardHolidays.size() - (1 + i));
-        }*/
-    int days_before_holiday = date.daysTo(backwardHolidays.takeLast());
+    QList<QDate> holidays = yearsHolidays(year);
+    int days_before_holiday = date.daysTo(holidays.last());
 
-    if (days_before_holiday < 0)
+    if (days_before_holiday <= 0)
     {
         /* 'date' is after xmas: next holiday is New Year's Eve next
            year. */
         return QDate(year + 1, 1, 1);
     }
-    foreach (QDate holiday, backwardHolidays)
+    foreach (QDate holiday, holidays)
     {
         days_before_holiday = date.daysTo(holiday);
         if (days_before_holiday > 0)

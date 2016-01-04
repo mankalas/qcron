@@ -364,4 +364,22 @@ realLife()
 
 /******************************************************************************/
 
+void
+QCronTest::
+holidays()
+{
+    QString pattern = "* 2 F * * *";
+    _dnow.setDate(2016, 12, 1);
+    QCOMPARE(actual(pattern), QDateTime(QDate(2016, 12, 25), QTime(2, 0, 0)));
+    _dnow.setDate(2016, 12, 25);
+    _tnow.setHMS(0, 0, 0);
+    QCOMPARE(actual(pattern), now().addSecs(3600 * 2));
+    _tnow.setHMS(23, 59, 59);
+    QCOMPARE(actual(pattern), QDateTime(QDate(2017, 1, 1), QTime(2, 0, 0)));
+
+
+}
+
+/******************************************************************************/
+
 QTEST_MAIN(QCronTest)

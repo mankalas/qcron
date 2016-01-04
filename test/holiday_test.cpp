@@ -70,8 +70,8 @@ void
 HolidayTest::
 nextHoliday()
 {
-    QDate today = QDate(2016, 1, 1);
-    QCOMPARE(Holiday::next(today), QDate(2016, 3, 28));
+    QDate today = QDate(2016, 12, 1);
+    QCOMPARE(Holiday::next(today), QDate(2016, 12, 25));
     today = QDate(2016, 2, 1);
     QCOMPARE(Holiday::next(today), QDate(2016, 3, 28));
 }

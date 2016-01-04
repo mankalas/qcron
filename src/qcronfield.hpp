@@ -7,7 +7,7 @@
 
 enum EField
 {
-    MINUTE,
+    MINUTE = 0,
     HOUR,
     DOM,
     MONTH,
@@ -74,8 +74,6 @@ public:
 
     QCronNode * getRoot() const
         { return _root; }
-
-    int next(QDateTime & dt);
 
     int getDateTimeSection(const QDateTime & dt) const;
     void applyOffset(QDateTime & dt, int & offset) const;

@@ -131,7 +131,7 @@ _parseNode(QString & str)
     {
         node = _parseList(str);
     }
-    else if (_field == DOM)
+    else if (DOM == _field)
     {
         if ('F' == c)
         {
@@ -235,16 +235,6 @@ applyOffset(QDateTime & dt, int & offset) const
 
 /******************************************************************************/
 
-int
-QCronField::
-next(QDateTime & dt)
-{
-    int time_section = getDateTimeSection(dt);
-    return _root->next(time_section);
-}
-
-/******************************************************************************/
-
 void
 QCronField::
 reset(QDateTime & dt)
@@ -282,7 +272,7 @@ bool
 QCronField::
 match(const QDateTime & dt) const
 {
-    return _root->match(getDateTimeSection(dt));
+    return _root->match(dt);
 }
 
 /******************************************************************************/

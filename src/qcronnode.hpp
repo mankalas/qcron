@@ -18,7 +18,7 @@ public:
 
     virtual int next(int t) const = 0;
 
-    virtual bool match(int tu) const = 0;
+    virtual bool match(const QDateTime & dt) const = 0;
     virtual void process(QCron * cron,
                          QDateTime & dt,
                          EField field) = 0;
@@ -43,7 +43,7 @@ public:
     int value() const;
 
     virtual int next(int t) const Q_DECL_OVERRIDE;
-    virtual bool match(int tu) const Q_DECL_OVERRIDE;
+    virtual bool match(const QDateTime & dt) const Q_DECL_OVERRIDE;
 
     virtual void process(QCron * cron,
                          QDateTime & dt,
@@ -59,7 +59,7 @@ class QCronStrNode : public QCronValueNode
 {
 public:
     virtual int next(int t) const Q_DECL_OVERRIDE;
-    virtual bool match(int tu) const Q_DECL_OVERRIDE;
+    virtual bool match(const QDateTime & dt) const Q_DECL_OVERRIDE;
     virtual void process(QCron * cron,
                          QDateTime & dt,
                          EField field) Q_DECL_OVERRIDE;
@@ -71,7 +71,7 @@ class QCronAllNode : public QCronValueNode
 {
 public:
     virtual int next(int t) const Q_DECL_OVERRIDE;
-    virtual bool match(int tu) const Q_DECL_OVERRIDE;
+    virtual bool match(const QDateTime & dt) const Q_DECL_OVERRIDE;
     virtual void process(QCron * cron,
                          QDateTime & dt,
                          EField field) Q_DECL_OVERRIDE;
@@ -89,7 +89,7 @@ public:
     int endValue() const;
 
     virtual int next(int t) const Q_DECL_OVERRIDE;
-    virtual bool match(int tu) const Q_DECL_OVERRIDE;
+    virtual bool match(const QDateTime & dt) const Q_DECL_OVERRIDE;
 
     virtual void process(QCron * cron,
                          QDateTime & dt,
@@ -108,7 +108,7 @@ public:
     QCronEveryNode(QCronNode *, QCronIntNode *);
 
     virtual int next(int t) const Q_DECL_OVERRIDE;
-    virtual bool match(int tu) const Q_DECL_OVERRIDE;
+    virtual bool match(const QDateTime & dt) const Q_DECL_OVERRIDE;
 
     virtual void process(QCron * cron,
                          QDateTime & dt,
@@ -127,7 +127,7 @@ public:
     QList<QCronNode *> & nodes();
 
     virtual int next(int t) const Q_DECL_OVERRIDE;
-    virtual bool match(int tu) const Q_DECL_OVERRIDE;
+    virtual bool match(const QDateTime & dt) const Q_DECL_OVERRIDE;
     virtual void process(QCron * cron,
                          QDateTime & dt,
                          EField field) Q_DECL_OVERRIDE;
@@ -143,7 +143,7 @@ class QCronHolidayNode : public QCronNode
 public:
     virtual int next(int t) const;
 
-    virtual bool match(int tu) const;
+    virtual bool match(const QDateTime & dt) const;
     virtual void process(QCron * cron,
                          QDateTime & dt,
                          EField field);

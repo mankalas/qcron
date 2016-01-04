@@ -237,7 +237,6 @@ next(QDateTime dt)
         for (int i = YEAR; i >= 0; --i)
         {
             chiche(dt, (EField)i);
-            //qDebug() << dt << "after Chcihe";
             if (!dt.isValid())
             {
                 return dt;

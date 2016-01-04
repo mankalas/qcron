@@ -63,9 +63,9 @@ process(QCron * cron,
 
 bool
 QCronIntNode::
-match(int tu) const
+match(const QDateTime & dt) const
 {
-    return tu == _value;
+    return _field->getDateTimeSection(dt) == _value;
 }
 
 /******************************************************************************/
@@ -93,9 +93,9 @@ process(QCron *,
 
 bool
 QCronStrNode::
-match(int tu) const
+match(const QDateTime & dt) const
 {
-    return tu;
+    return _field->getDateTimeSection(dt);
 }
 
 /******************************************************************************/
@@ -126,9 +126,9 @@ process(QCron * cron,
 
 bool
 QCronAllNode::
-match(int tu) const
+match(const QDateTime & dt) const
 {
-    Q_UNUSED(tu);
+    Q_UNUSED(dt);
     return true;
 }
 
@@ -202,8 +202,9 @@ next(int t) const
 
 bool
 QCronRangeNode::
-match(int tu) const
+match(const QDateTime & dt) const
 {
+    int tu = _field->getDateTimeSection(dt);
     return _begin->value() <= tu && tu <= _end->value();
 }
 
@@ -257,9 +258,10 @@ next(int t) const
 
 bool
 QCronEveryNode::
-match(int tu) const
+match(const QDateTime & dt) const
 {
-    return _what->match(tu) && tu % _freq->value() == 0;
+    int tu = _field->getDateTimeSection(dt);
+    return _what->match(dt) && tu % _freq->value() == 0;
 }
 
 /******************************************************************************/
@@ -313,11 +315,11 @@ next(int t) const
 
 bool
 QCronListNode::
-match(int tu) const
+match(const QDateTime & dt) const
 {
     foreach (const QCronNode * node, _nodes)
     {
-        if (node->match(tu))
+        if (node->match(dt))
         {
             return true;
         }
@@ -346,22 +348,28 @@ process(QCron * cron,
         EField field)
 {
     Q_UNUSED(cron);
-    if (DOM == field)
+    if (DOM != field)
+    {
+        qFatal("Should not be in a Holiday node.");
+    }
+    if (!Holiday::isHoliday(dt.date()))
     {
         QDate next_holiday = Holiday::next(dt.date());
-        dt.setDate(next_holiday);
+        if (dt.date() != next_holiday)
+        {
+            dt.setDate(next_holiday);
+            dt.setTime(QTime(0, 0, 0));
+        }
     }
-    qFatal("Should not be there.");
 }
 
 /******************************************************************************/
 
 bool
 QCronHolidayNode::
-match(int tu) const
+match(const QDateTime & dt) const
 {
-    Q_UNUSED(tu);
-    return false;
+    return Holiday::isHoliday(dt.date());
 }
 
 /******************************************************************************/
