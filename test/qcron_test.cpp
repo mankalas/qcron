@@ -28,6 +28,15 @@ actual(QString & pattern)
 
 /******************************************************************************/
 
+QDateTime
+QCronTest::
+now()
+{
+    return QDateTime(_dnow, _tnow);
+}
+
+/******************************************************************************/
+
 void
 QCronTest::
 minutes()
@@ -139,15 +148,6 @@ minutes()
     QCOMPARE(actual(pattern), now().addSecs(60 * 10));
     _tnow.setHMS(0, 30, 0);
     QCOMPARE(actual(pattern), now().addSecs(60 * 40));
-}
-
-/******************************************************************************/
-
-QDateTime
-QCronTest::
-now()
-{
-    return QDateTime(_dnow, _tnow);
 }
 
 /******************************************************************************/

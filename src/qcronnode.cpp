@@ -1,8 +1,7 @@
 #include "qcronnode.hpp"
 #include "qcronfield.hpp"
 #include "qcron.hpp"
-
-#include <QDebug>
+#include "holiday.hpp"
 
 #include <QDebug>
 
@@ -323,6 +322,45 @@ match(int tu) const
             return true;
         }
     }
+    return false;
+}
+
+/******************************************************************************/
+/******************************************************************************/
+
+int
+QCronHolidayNode::
+next(int t) const
+{
+    Q_UNUSED(t)
+    //return Holiday::next(t);
+    return -1;
+}
+
+/******************************************************************************/
+
+void
+QCronHolidayNode::
+process(QCron * cron,
+        QDateTime & dt,
+        EField field)
+{
+    Q_UNUSED(cron);
+    if (DOM == field)
+    {
+        QDate next_holiday = Holiday::next(dt.date());
+        dt.setDate(next_holiday);
+    }
+    qFatal("Should not be there.");
+}
+
+/******************************************************************************/
+
+bool
+QCronHolidayNode::
+match(int tu) const
+{
+    Q_UNUSED(tu);
     return false;
 }
 

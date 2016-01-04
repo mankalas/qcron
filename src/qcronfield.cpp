@@ -131,6 +131,18 @@ _parseNode(QString & str)
     {
         node = _parseList(str);
     }
+    else if (_field == DOM)
+    {
+        if ('F' == c)
+        {
+            str.remove(0, 1);
+            node = new QCronHolidayNode();
+        }
+        else if ('f' == c)
+        {
+
+        }
+    }
     if (NULL == node)
     {
         throw QCronFieldException(QString("Unexpected character %1").arg(c));

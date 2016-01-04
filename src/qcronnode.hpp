@@ -27,9 +27,13 @@ protected:
     QCronField * _field;
 };
 
+/******************************************************************************/
+
 class QCronValueNode : public QCronNode
 {
 };
+
+/******************************************************************************/
 
 class QCronIntNode : public QCronValueNode
 {
@@ -49,6 +53,8 @@ private:
     int _value;
 };
 
+/******************************************************************************/
+
 class QCronStrNode : public QCronValueNode
 {
 public:
@@ -59,6 +65,8 @@ public:
                          EField field) Q_DECL_OVERRIDE;
 };
 
+/******************************************************************************/
+
 class QCronAllNode : public QCronValueNode
 {
 public:
@@ -68,6 +76,8 @@ public:
                          QDateTime & dt,
                          EField field) Q_DECL_OVERRIDE;
 };
+
+/******************************************************************************/
 
 class QCronRangeNode : public QCronNode
 {
@@ -90,6 +100,8 @@ private:
     const QCronIntNode * _end;
 };
 
+/******************************************************************************/
+
 class QCronEveryNode : public QCronNode
 {
 public:
@@ -107,6 +119,8 @@ private:
     QCronIntNode * _freq;
 };
 
+/******************************************************************************/
+
 class QCronListNode : public QCronNode
 {
 public:
@@ -121,5 +135,20 @@ public:
 private:
     QList<QCronNode*> _nodes;
 };
+
+/******************************************************************************/
+
+class QCronHolidayNode : public QCronNode
+{
+public:
+    virtual int next(int t) const;
+
+    virtual bool match(int tu) const;
+    virtual void process(QCron * cron,
+                         QDateTime & dt,
+                         EField field);
+};
+
+/******************************************************************************/
 
 #endif
