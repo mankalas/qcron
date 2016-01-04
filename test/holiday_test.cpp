@@ -66,4 +66,16 @@ holiday()
 
 /******************************************************************************/
 
+void
+HolidayTest::
+nextHoliday()
+{
+    QDate today = QDate(2016, 1, 1);
+    QCOMPARE(Holiday::next(today), QDate(2016, 3, 28));
+    today = QDate(2016, 2, 1);
+    QCOMPARE(Holiday::next(today), QDate(2016, 3, 28));
+}
+
+/******************************************************************************/
+
 QTEST_MAIN(HolidayTest)

@@ -10,6 +10,7 @@ class HolidayTest : public QObject
 private slots:
     void easter();
     void holiday();
+    void nextHoliday();
 };
 
 #endif

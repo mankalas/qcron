@@ -1,6 +1,30 @@
 #include "holiday.hpp"
 
 #include <QList>
+#include <QDebug>
+
+/******************************************************************************/
+
+QList<QDate>
+Holiday::
+yearsHolidays(int year)
+{
+    QDate easter = Holiday::easter(year);
+    QList<QDate> holidays  = QList<QDate>()
+                             << QDate(year, 1, 1)     // Jour de l'an
+                             << easter.addDays(1)  // Lundi de Paques
+                             << easter.addDays(39) // Jeaudi de l'Ascension
+                             << easter.addDays(50) // Lundi de Pentecote
+                             << QDate(year, 5, 1)     // Fete du travail
+                             << QDate(year, 5, 8)     // Fete de la victoire
+                             << QDate(year, 7, 14)    // Fete nationale
+                             << QDate(year, 8, 15)    // Assomption
+                             << QDate(year, 11, 1)    // Toussaint
+                             << QDate(year, 11, 11)   // Armistice de 1918
+                             << QDate(year, 12, 25)   // Noel
+                             ;
+    return holidays;
+}
 
 /******************************************************************************/
 
@@ -8,24 +32,7 @@ bool
 Holiday::
 isHoliday(const QDate & today)
 {
-    int y = today.year();
-    QList<QDate> holidays  = QList<QDate>()
-                             << QDate(y, 1, 1)   // Jour de l'an
-                             << QDate(y, 5, 1)   // Fete du travail
-                             << QDate(y, 5, 8)   // Fete de la victoire
-                             << QDate(y, 7, 14)  // Fete nationale
-                             << QDate(y, 8, 15)  // Assomption
-                             << QDate(y, 11, 1)  // Toussaint
-                             << QDate(y, 11, 11) // Armistice de 1918
-                             << QDate(y, 12, 25) // Noel
-                             ;
-    QDate easter = Holiday::easter(y);
-
-    return holidays.contains(today) ||
-           today == easter.addDays(1) ||  // Lundi de Paques
-           today == easter.addDays(39) || // Jeaudi de l'Ascension
-           today == easter.addDays(50)    // Lundi de Pentecote
-           ;
+    return yearsHolidays(today.year()).contains(today);
 }
 
 /******************************************************************************/
@@ -51,6 +58,39 @@ easter(int y)
         g += 30;
     }
     return QDate(y, 3, 1).addDays(g + 7 - (e + g) % 7 - 1);
+}
+
+/******************************************************************************/
+
+QDate
+Holiday::
+next(const QDate & date)
+{
+    int year = date.year();
+    QList<QDate> backwardHolidays = yearsHolidays(year);
+    /*for (int i = 0; i < backwardHolidays.size() / 2; ++i)
+    {
+        backwardHolidays.swap(i, backwardHolidays.size() - (1 + i));
+        }*/
+    int days_before_holiday = date.daysTo(backwardHolidays.takeLast());
+
+    if (days_before_holiday < 0)
+    {
+        /* 'date' is after xmas: next holiday is New Year's Eve next
+           year. */
+        return QDate(year + 1, 1, 1);
+    }
+    foreach (QDate holiday, backwardHolidays)
+    {
+        days_before_holiday = date.daysTo(holiday);
+        if (days_before_holiday > 0)
+        {
+            return holiday;
+        }
+    }
+    qDebug() << "Can't find a valid next holiday" << date;
+    qFatal("Should not be here");
+    return QDate();
 }
 
 /******************************************************************************/
