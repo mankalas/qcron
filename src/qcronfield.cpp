@@ -114,20 +114,20 @@ _parseNode(QString & str)
     {
         node = _parseInt(str);
     }
-    else if ("-" == c)
+    else if ('-' == c)
     {
         node = _parseRange(str);
     }
-    else if ("/" == c)
+    else if ('/' == c)
     {
         node = _parseEvery(str);
     }
-    else if ("*" == c)
+    else if ('*' == c)
     {
         str.remove(0, 1);
         node = new QCronAllNode;
     }
-    else if ("," == c)
+    else if (',' == c)
     {
         node = _parseList(str);
     }
