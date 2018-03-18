@@ -12,17 +12,17 @@
 QCron::
 QCron()
 {
-    _init();
+    _init(false);
 }
 
 /******************************************************************************/
 
 QCron::
-QCron(const QString & pattern)
+QCron(const QString & pattern, bool isauto)
 {
-    _init();
+    _init(isauto);
     _parsePattern(pattern);
-    _checkState();
+    checkState();
 }
 
 /******************************************************************************/
@@ -36,8 +36,9 @@ QCron::
 
 void
 QCron::
-_init()
+_init(bool isauto)
 {
+    _is_auto = isauto;
     _is_valid = true;
     _is_active = false;
     _fields[0].setField(MINUTE);
@@ -52,7 +53,7 @@ _init()
 
 void
 QCron::
-_checkState()
+checkState()
 {
     int interval_ms = 0;
     if (match(QDateTime::currentDateTime()))
@@ -70,10 +71,13 @@ _checkState()
         }
         interval_ms = QDateTime::currentDateTime().secsTo(next()) * 1000;
     }
-    QTimer::singleShot(interval_ms,
-                       Qt::VeryCoarseTimer,
-                       this,
-                       SLOT(_checkState()));
+
+    if(_is_auto) {
+        QTimer::singleShot(interval_ms,
+                           Qt::VeryCoarseTimer,
+                           this,
+                           SLOT(checkState()));
+    }
 }
 
 /******************************************************************************/
@@ -97,7 +101,16 @@ _parsePattern(const QString & pattern)
         _setError("'\n' is an invalid field separator.");
         return;
     }
-    QStringList fields = pattern.simplified().split(" ", QString::SkipEmptyParts);
+
+    int to;
+    int from = 0;
+    QStringList fields;
+    while((to=pattern.indexOf(' ', from))!=-1 && fields.size()<6) {
+        //qDebug("to %d %s",to,pattern.mid(from,to-from).toLatin1().constData());
+        fields.append(pattern.mid(from, to-from));
+        from = to + 1;
+    }
+
     int nb_fields = fields.size();
     if (nb_fields != 6)
     {
@@ -105,6 +118,10 @@ _parsePattern(const QString & pattern)
                   .arg(nb_fields));
         return;
     }
+
+    _command =  pattern.mid(from);
+    //qDebug("cmd %s", _command.toLatin1().constData());
+
     try
     {
         for (int i = 0; i < 6; ++i)

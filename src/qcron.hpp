@@ -11,15 +11,21 @@ class QCron : public QObject
 
 public:
     QCron();
-    QCron(const QString & pattern);
+    QCron(const QString & pattern, bool isauto=true);
     ~QCron();
 
     // Accessors.
+    bool isActive() const
+        { return _is_active; }
+
     bool isValid() const
         { return _is_valid; }
 
     const QString & error() const
         { return _error; }
+
+    const QString &command() const
+        { return _command; }
 
     // Features.
 
@@ -34,12 +40,14 @@ signals:
     void deactivated();
 
 private:
+    bool _is_auto;
     bool _is_valid;
     bool _is_active;
     QString _error;
     QCronField _fields[6];
+    QString _command;
 
-    void _init();
+    void _init(bool isauto);
     void _setError(const QString & error);
     void _parsePattern(const QString & pattern);
     void _parseField(QString & field_str,
@@ -47,8 +55,8 @@ private:
     QString _validCharacters(EField field);
     void _process(QDateTime & dt, EField field);
 
-private slots:
-    void _checkState();
+public slots:
+    void checkState();
 };
 
 #endif
