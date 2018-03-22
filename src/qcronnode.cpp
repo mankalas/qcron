@@ -65,6 +65,7 @@ bool
 QCronIntNode::
 match(const QDateTime & dt) const
 {
+    //qDebug("QCronIntNode:: match %d %d", _field->getDateTimeSection(dt), _value);
     return _field->getDateTimeSection(dt) == _value;
 }
 
@@ -261,6 +262,7 @@ QCronEveryNode::
 match(const QDateTime & dt) const
 {
     int tu = _field->getDateTimeSection(dt);
+    //qDebug("QCronEveryNode::match tu %d %d %d", tu , _what->match(dt), _freq->value());
     return _what->match(dt) && tu % _freq->value() == 0;
 }
 
