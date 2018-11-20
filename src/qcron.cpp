@@ -22,7 +22,9 @@ QCron(const QString & pattern)
 {
     _init();
     _parsePattern(pattern);
-    _checkState();
+    if (_is_valid) {
+        _checkState();
+    }
 }
 
 /******************************************************************************/
