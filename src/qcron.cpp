@@ -99,7 +99,11 @@ _parsePattern(const QString & pattern)
         _setError("'\n' is an invalid field separator.");
         return;
     }
+#if QT_VERSION >= QT_VERSION_CHECK( 5, 14, 0 )
+    QStringList fields = pattern.simplified().split(" ", Qt::SkipEmptyParts);
+#else
     QStringList fields = pattern.simplified().split(" ", QString::SkipEmptyParts);
+#endif
     int nb_fields = fields.size();
     if (nb_fields != 6)
     {
