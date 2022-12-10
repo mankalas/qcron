@@ -22,6 +22,9 @@ QCronTest::
 actual(QString & pattern)
 {
     QCron c(pattern);
+    if (!c.isValid()) {
+        return QDateTime();
+    }
     return c.next(QDateTime(_dnow, _tnow));
 }
 
@@ -42,6 +45,11 @@ minutes()
 {
     // Star
     QString pattern = "* * * * * *";
+    _tnow.setHMS(0, 0, 0);
+    QCOMPARE(actual(pattern), now().addSecs(60 * 1));
+
+    // Invalid
+    pattern = "/1 * * * * *";
     _tnow.setHMS(0, 0, 0);
     QCOMPARE(actual(pattern), now().addSecs(60 * 1));
 

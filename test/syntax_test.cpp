@@ -51,7 +51,8 @@ buildTests(QStringList & good,
         buildPattern(pattern_idx, "1/2/3 * * * * *") <<
         buildPattern(pattern_idx, "1-2-3 * * * * *") << // Bad range
         buildPattern(pattern_idx, "** * * * * *") << // Bad star
-        buildPattern(pattern_idx, "1,,2 * * * * *") // Bad list
+        buildPattern(pattern_idx, "1,,2 * * * * *") << // Bad list
+        buildPattern(pattern_idx, "/1") << // invalid syntax / character
         ;
     good << buildPattern(pattern_idx, QString::number(min)) <<
          buildPattern(pattern_idx, QString("000000000%1").arg(min)) <<
