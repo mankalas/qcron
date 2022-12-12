@@ -111,10 +111,6 @@ _parsePattern(const QString & pattern)
     {
         for (int i = 0; i < 6; ++i)
         {
-            if (fields[i].startsWith('/')) {
-                _setError(QStringLiteral("Invalid character at: %1").arg(i));
-                continue;
-            }
             _fields[i].parse(fields[i]);
             _is_valid &= _fields[i].isValid();
         }

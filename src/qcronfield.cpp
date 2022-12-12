@@ -77,6 +77,10 @@ QCronField::
 _parseEvery(QString & str)
 {
     str.remove(0, 1);
+    if (!_last_node) {
+        throw QCronFieldException(QString("Every node for string %1 has null last node.")
+                                      .arg(str));
+    }
     return new QCronEveryNode(_last_node, _parseInt(str));
 }
 
