@@ -18,11 +18,14 @@ _parseInt(QString & str)
 {
     int value = 0;
     int char_idx = 0;
-    QChar c = str[char_idx];
+    QChar c = str.at(char_idx);
     while (c.isDigit())
     {
         value = value * 10 + c.digitValue();
-        c = str[++char_idx];
+        if (char_idx + 1 > str.size() - 1) {
+            break;
+        }
+        c = str.at(++char_idx);
     }
     if (char_idx == 0)
     {
@@ -91,7 +94,7 @@ _parseList(QString & str)
     _last_node = list;
     while (!str.isEmpty())
     {
-        if (str[0] == ',')
+        if (str.startsWith(','))
         {
             str.remove(0, 1);
         }
@@ -109,7 +112,7 @@ QCronField::
 _parseNode(QString & str)
 {
     QCronNode * node = NULL;
-    QChar c = str[0];
+    QChar c = str.at(0);
     if (c.isDigit())
     {
         node = _parseInt(str);
