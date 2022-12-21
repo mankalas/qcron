@@ -22,6 +22,9 @@ QCronTest::
 actual(QString & pattern)
 {
     QCron c(pattern);
+    if (!c.isValid()) {
+        return QDateTime();
+    }
     return c.next(QDateTime(_dnow, _tnow));
 }
 
