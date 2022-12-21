@@ -48,11 +48,6 @@ minutes()
     _tnow.setHMS(0, 0, 0);
     QCOMPARE(actual(pattern), now().addSecs(60 * 1));
 
-    // Invalid
-    pattern = "/1 * * * * *";
-    _tnow.setHMS(0, 0, 0);
-    QCOMPARE(actual(pattern), now().addSecs(60 * 1));
-
     // Int
     pattern = "30 * * * * *";
     QCOMPARE(actual(pattern), now().addSecs(60 * 30));
