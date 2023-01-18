@@ -22,10 +22,11 @@ _parseInt(QString & str)
     while (c.isDigit())
     {
         value = value * 10 + c.digitValue();
-        if (char_idx + 1 > str.size() - 1) {
+        ++char_idx;
+        if (char_idx > str.size() - 1) {
             break;
         }
-        c = str.at(++char_idx);
+        c = str.at(char_idx);
     }
     if (char_idx == 0)
     {
